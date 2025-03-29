@@ -1,14 +1,7 @@
 import streamlit as st
 import numpy as np
-# from fpdf import FPDF
-from fpdf import FPDF
-print("FPDF imported successfully!")
-
 import matplotlib.pyplot as plt
 import seaborn as sns
-import io
-import tempfile
-import os
 
 st.set_page_config(page_title="Heart Disease & Symptom Detection App", layout="wide")
 
@@ -110,11 +103,6 @@ ax.set_xlabel("Factors")
 plt.tight_layout()
 st.pyplot(fig)
 
-# Temporary file for risk factor chart
-tempfile_risk_chart = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
-fig.savefig(tempfile_risk_chart.name)
-tempfile_risk_chart.close()
-
 # Symptoms distribution pie chart
 if symptoms:
     symptom_counts = {symptom: symptoms.count(symptom) for symptom in set(symptoms)}
@@ -123,51 +111,3 @@ if symptoms:
     ax2.set_title("Symptom Distribution")
     plt.tight_layout()
     st.pyplot(fig2)
-
-# Generate PDF Report
-def generate_pdf(name, date_of_check, age, sex, risk_level, symptoms, conditions):
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", size=12)
-    pdf.cell(200, 10, txt="Heart Disease & Symptom Detection Report", ln=True, align='C')
-    pdf.ln(10)
-    pdf.cell(200, 10, txt=f"Name: {name}", ln=True)
-    pdf.cell(200, 10, txt=f"Date of Check: {date_of_check}", ln=True)
-    pdf.cell(200, 10, txt=f"Age: {age}", ln=True)
-    pdf.cell(200, 10, txt=f"Sex: {sex}", ln=True)
-    pdf.cell(200, 10, txt=f"Heart Disease Risk Level: {risk_level}", ln=True)
-    pdf.ln(10)
-    
-    # Add Risk Level Description
-    pdf.cell(200, 10, txt="Heart Disease Risk Level Explanation:", ln=True)
-    if risk_level == "High":
-        pdf.multi_cell(0, 10, txt="High Risk: You have multiple significant risk factors. Immediate medical consultation is recommended.")
-    elif risk_level == "Moderate":
-        pdf.multi_cell(0, 10, txt="Moderate Risk: You have some risk factors. Consider consulting a doctor for further evaluation.")
-    else:
-        pdf.multi_cell(0, 10, txt="Low Risk: You have minimal risk factors. Maintain a healthy lifestyle to minimize future risks.")
-    
-    pdf.ln(10)
-    pdf.cell(200, 10, txt="Selected Symptoms:", ln=True)
-    for symptom in symptoms:
-        pdf.cell(200, 10, txt=f"- {symptom}", ln=True)
-    pdf.ln(10)
-    
-    pdf.cell(200, 10, txt="Possible Conditions:", ln=True)
-    for condition in conditions:
-        pdf.cell(200, 10, txt=f"- {condition}", ln=True)
-    pdf.ln(10)
-    
-    pdf.cell(200, 10, txt="Risk Factor Visualization:", ln=True)
-    pdf.image(tempfile_risk_chart.name, x=10, y=pdf.get_y() + 10, w=180)
-    pdf.ln(70)
-    
-    # pdf.cell(200, 10, txt="Disclaimer: This report is for informational purposes only.", ln=True)
-    pdf.output("report.pdf")
-
-# Button to generate the PDF report
-if st.button("Generate PDF Report"):
-    generate_pdf(name, date_of_check, age, sex, risk_level, symptoms, conditions)
-    st.success("PDF report generated successfully!")
-    with open("report.pdf", "rb") as file:
-        st.download_button("Download Your Report", file, "report.pdf")
